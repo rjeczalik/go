@@ -151,6 +151,9 @@ type Transport struct {
 // onceSetNextProtoDefaults initializes TLSNextProto.
 // It must be called via t.nextProtoOnce.Do.
 func (t *Transport) onceSetNextProtoDefaults() {
+	if t.Proxy == nil {
+		t.Proxy = ProxyFromEnvironment
+	}
 	if strings.Contains(os.Getenv("GODEBUG"), "http2client=0") {
 		return
 	}
@@ -827,14 +830,6 @@ func useProxy(addr string) bool {
 	host, _, err := net.SplitHostPort(addr)
 	if err != nil {
 		return false
-	}
-	if host == "localhost" {
-		return false
-	}
-	if ip := net.ParseIP(host); ip != nil {
-		if ip.IsLoopback() {
-			return false
-		}
 	}
 
 	no_proxy := noProxyEnv.Get()
